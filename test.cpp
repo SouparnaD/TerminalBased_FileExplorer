@@ -9,6 +9,7 @@
 #include<string>
 #include<algorithm>
 #include<time.h>
+#include"cmd.h"
 using namespace std;
 
 
@@ -83,6 +84,7 @@ void scroll(vector<string> &v, int start, int end,string s)
         //printrest(s);
         cout<<endl;
     }
+
 }
 void directory(string s)
 {
@@ -100,8 +102,6 @@ void directory(string s)
         
         printf("\033c");
         
-        v.push_back("file names: ");
-        v.push_back("-----------------------");
 
         while ((dir = readdir(d)) != NULL)
         {
@@ -124,21 +124,22 @@ void directory(string s)
 
 
     int c;
-    int countrow=2;
+    int countrow=0;
     struct winsize w;
     
     ioctl(0, TIOCGWINSZ, &w);
     int rows=w.ws_row;
     int remaining;
     
-     
+
     
+
     int start=0;
     int end=rows-10;
     scroll(v,start,end,s);
-    printf("\033[3;1H");
-
-
+    
+    printf("\033[1;1H");
+    
     
 
 
@@ -192,6 +193,7 @@ void directory(string s)
             s=path[var];
             s.insert(s.size(),"/");
             s.insert(s.size(),v[countrow]);
+            cout<<v[countrow];
             path.push_back(s);
             var++;
             cout<<s;
@@ -200,7 +202,7 @@ void directory(string s)
         else if(c==KEY_LEFT)
         {
             
-            if(path.size() != 0 && var>=0)
+            if(path.size() != 0 && var>0)
             {
                 var--;
                 directory(path[var]);
@@ -212,12 +214,23 @@ void directory(string s)
             if(var<path.size()-1)
             {
                 var++;
+                //cout<<path[var];
                 directory(path[var]);
             }
+        }
+        else if(c == 'h')
+        {
+            var=0;
+            directory(path[var]);
+        }
+        else if(c== ':')
+        {
+            cmd();
         }
             else {
             putchar(c);
         }
+        
     }
 
     //printf("\n");
