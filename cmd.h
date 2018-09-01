@@ -6,6 +6,7 @@
 #include <fstream>
 #include<dirent.h>
 #include<cstring>
+#include <limits.h>
 //#include<ioctl>
 using namespace std;
 
@@ -31,14 +32,14 @@ bool is_dir(const char* path)  //returns true if input is a directory
 }
 string getcurdir()
 {
-	char cwd[100];
-	getcwd(cwd,sizeof(cwd));
+    char cwd[100];
+    getcwd(cwd,sizeof(cwd));
     string s=cwd; return s;
 
 }
 vector<string> getcommand()
 {
-	string s;
+    string s;
     getline(cin ,s) ; 
     
     
@@ -66,27 +67,27 @@ vector<string> getcommand()
 }
 void makedir(string name,string dest)
 {
-	string dirname;
+    string dirname;
     
-	if(dest == ".")
-		dirname = getcurdir()+"/"+name;
-	else
-		dirname = getcurdir()+"/"+dest+"/"+name;
-	int i=mkdir(dirname.c_str(),0777);
-	if(i==-1)
-	{
-		cout<<"error creating directory"<<endl;
-	}
+    if(dest == ".")
+        dirname = getcurdir()+"/"+name;
+    else
+        dirname = getcurdir()+"/"+dest+"/"+name;
+    int i=mkdir(dirname.c_str(),0777);
+    if(i==-1)
+    {
+        cout<<"error creating directory"<<endl;
+    }
 }
 
 void makefile(string name, string dest)
 {
-	string filename;
-	if(dest==".")
-		filename = getcurdir()+"/"+name;
-	else
-		filename = getcurdir()+"/"+dest+"/"+name;
-	std::ofstream file{filename};
+    string filename;
+    if(dest==".")
+        filename = getcurdir()+"/"+name;
+    else
+        filename = getcurdir()+"/"+dest+"/"+name;
+    std::ofstream file{filename};
 }
 
 char* get_dir_name(char* path)  //this function returns the last folder from an input path
@@ -198,7 +199,31 @@ int copy(char* src, char* dst, bool first_call)
 }
 
 
+void removedirectory(const char *dirname)
+{
+    DIR *dir;
+    struct dirent *entry;
+    char path[PATH_MAX];
+    dir = opendir(dirname);
+    if (dir == NULL) {
+        perror("Error opendir()");
+        return;
+    }
 
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+            snprintf(path, (size_t) PATH_MAX, "%s/%s", dirname, entry->d_name);
+            if (entry->d_type == DT_DIR) {
+                removedirectory(path);
+            }
+            remove(path);
+        }
+
+    }
+    rmdir(dirname);
+    closedir(dir);
+
+}
 
 
 
@@ -224,37 +249,71 @@ printf("\033[0;36m""COMMAND MODE STARTED:\n");
 printf("enter a command:\n");
 while(1)
 {
-	vector<string> v;
-	v=getcommand();
-	if(v[0] == "create_dir")
-	{
-		makedir(v[1],v[2]);
-	}
-	else if(v[0]== "create_file")
-	{
-		makefile(v[1],v[2]);
-	}
-	else if(v[0] == "copy")
-	{
-		if(v.size()<3)
-			cout<<"wrong command\n";
-		int i=1;
-    	
-    	if(!is_file((char *)v[1].c_str()) && !is_dir((char *)v[1].c_str()))
-    	{
+    vector<string> v;
+    v=getcommand();
+    if(v[0] == "create_dir")
+    {
+        makedir(v[1],v[2]);
+    }
+    else if(v[0]== "create_file")
+    {
+        makefile(v[1],v[2]);
+    }
+    else if(v[0] == "copy")
+    {
+        if(v.size()<3)
+            cout<<"wrong command\n";
+        int i=1;
+        
+        if(!is_file((char *)v[1].c_str()) && !is_dir((char *)v[1].c_str()))
+        {
         cout<<v[1]<<": source does not exist!\n";
         continue;
-    	}
-    	
-		if(is_file((char *)v[2].c_str()))
-    	{
-        	cout<<v[2]<<" already exists. Over-write? (y/n): ";
-			char c;
-        	cin>>c;
-        	if ( c== 'n' || c=='N' )
-            	continue;
-    	}
-    	copy((char *)v[1].c_str(),(char *)v[2].c_str(),true);
+        }
+        
+        if(is_file((char *)v[2].c_str()))
+        {
+            cout<<v[2]<<" already exists. Over-write? (y/n): ";
+            char c;
+            cin>>c;
+            if ( c== 'n' || c=='N' )
+                continue;
+        }
+        copy((char *)v[1].c_str(),(char *)v[2].c_str(),true);
+    }
+    else if(v[0] == "delete")
+    {
+        if(v.size()<2)
+        {
+            printf("wrong command\n");
+            return ;
+        }
+            removedirectory(v[1].c_str());
+        
+
+    }
+    else if(v[0] == "move")
+    {
+        if(v.size()<3)
+            cout<<"wrong command\n";
+        int i=1;
+        
+        if(!is_file((char *)v[1].c_str()) && !is_dir((char *)v[1].c_str()))
+        {
+        cout<<v[1]<<": source does not exist!\n";
+        continue;
+        }
+        
+        if(is_file((char *)v[2].c_str()))
+        {
+            cout<<v[2]<<" already exists. Over-write? (y/n): ";
+            char c;
+            cin>>c;
+            if ( c== 'n' || c=='N' )
+                continue;
+        }
+        copy((char *)v[1].c_str(),(char *)v[2].c_str(),true);
+        removedirectory(v[1].c_str());
     }
 }
 
