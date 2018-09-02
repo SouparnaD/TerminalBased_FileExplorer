@@ -191,7 +191,7 @@ void directory(string s)
         else if(c==KEY_ENTER)
         {
             s=path[var];
-            //cout<<s;
+            cout<<s;
             s.insert(s.size(),"/");
             s.insert(s.size(),v[countrow]);
             //cout<<v[countrow];
@@ -233,13 +233,23 @@ void directory(string s)
         }
         else if(c == 'h')
         {
+            path.clear();
+            path.push_back(getcurdir());
             var=0;
             directory(path[var]);
         }
         else if(c== ':')
         {
-            cmd();
-            directory(path[var]);
+            string a=cmd();
+            if (a!="0")
+            {
+                path.clear();
+                path.push_back(a);
+                var=0;
+                directory(path[var]);
+            }
+            
+            else directory(path[var]);
 
         }
             else {
