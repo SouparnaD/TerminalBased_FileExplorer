@@ -9,7 +9,7 @@
 #include<string>
 #include<algorithm>
 #include<time.h>
-#include"cmd.h"
+#include"commandmode.h"
 using namespace std;
 
 
@@ -175,7 +175,7 @@ void directory(string s)
                 --countrow;
                 cursorupward(1);
             }
-            if(countrow == start && start>2)
+            if(countrow == start && start>0)
             {
                 printf("\033c");
                 --countrow;
@@ -191,13 +191,26 @@ void directory(string s)
         else if(c==KEY_ENTER)
         {
             s=path[var];
+            //cout<<s;
             s.insert(s.size(),"/");
             s.insert(s.size(),v[countrow]);
-            cout<<v[countrow];
+            //cout<<v[countrow];
+            if(is_dir(s.c_str())){
+                cout<<s<<"print";
             path.push_back(s);
             var++;
-            cout<<s;
-            directory(s);
+            //cout<<s;
+            directory(s);}
+            else
+            {
+                pid_t pid = fork();
+                if(pid == 0)
+                {
+                    execl("/usr/bin/xdg-open","xdg-open",s.c_str(),(char *)0);
+
+                }
+
+            }
          } 
         else if(c==KEY_LEFT)
         {
@@ -226,6 +239,8 @@ void directory(string s)
         else if(c== ':')
         {
             cmd();
+            directory(path[var]);
+
         }
             else {
             putchar(c);
@@ -324,16 +339,23 @@ int main(int argc, char **argv)
     string s;
     char cwd[100];
     getcwd(cwd,sizeof(cwd));
-    s=cwd;
-    path.push_back(s);
+    
+    
     var++;
 
 
     if(argc>=2){
+        string argpath = argv[1];
+        path.push_back(argpath);
         directory(argv[1]);
     }
     else 
+    {
+        s=cwd;
+        path.push_back(s);
         directory("0");
+
+    }
 
     return 0;
 }  
